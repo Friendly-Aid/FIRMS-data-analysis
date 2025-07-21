@@ -1,14 +1,19 @@
 import os
 import pandas as pd
+import requests
 import streamlit as st
+from io import StringIO
 
 st.set_page_config(layout="wide")
 
 @st.cache_data(show_spinner=False)
 def load_data():
-    path = os.path.join(os.getcwd(), "fire_data_enriched.csv.xz")
-    df = pd.read_csv(path, parse_dates=["acq_date"], low_memory=False)
-    return df
+    url=r'https://github.com/Friendly-Aid/BigProject_1/blob/master/risk_app/fire_data_enriched.csv.xz'
+    response = requests.get(url)
+    return pd.read_csv(StringIO(response.text))
+    #path = os.path.join(os.getcwd(), "fire_data_enriched.csv.xz")
+    #df = pd.read_csv(path, parse_dates=["acq_date"], low_memory=False)
+    #return df
 
 data = load_data()
 
