@@ -1,0 +1,2 @@
+To set up the streamlit app please run pip3 install -r requirements.txt. After that you can run streamlit run app.py while in the risk_app folder and it should work.
+If the csv file is missing you can make a new one using risk_data_setup but that does need you to install data_requirements.txt, and running the file will download files from the internet.

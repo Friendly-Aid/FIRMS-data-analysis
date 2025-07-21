@@ -1,0 +1,4 @@
+requests
+zipfile
+geopandas
+shapely

@@ -1,13 +1,12 @@
 import os
 import pandas as pd
-import numpy as np
 import streamlit as st
 
 st.set_page_config(layout="wide")
 
 @st.cache_data(show_spinner=False)
 def load_data():
-    path = os.path.join(os.getcwd(), "fire_data_enriched.csv")
+    path = os.path.join(os.getcwd(), "fire_data_enriched.csv.xz")
     df = pd.read_csv(path, parse_dates=["acq_date"], low_memory=False)
     return df
 
