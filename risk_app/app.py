@@ -6,7 +6,7 @@ st.set_page_config(layout="wide")
 @st.cache_data(show_spinner=False)
 def load_data():
     url=r'https://github.com/Friendly-Aid/BigProject_1/raw/refs/heads/master/risk_app/fire_data_enriched.csv.xz'
-    return pd.read_csv(url,compression='xz')
+    return pd.read_csv(url,compression='xz',parse_dates=['acq_date'], low_memory=False)
     #path = os.path.join(os.getcwd(), "fire_data_enriched.csv.xz")
     #df = pd.read_csv(path, parse_dates=["acq_date"], low_memory=False)
     #return df
