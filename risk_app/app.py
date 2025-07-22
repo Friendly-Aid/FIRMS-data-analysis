@@ -1,13 +1,15 @@
+# import libraries and setup streamlit
 import os
 import pandas as pd
 import streamlit as st
 st.set_page_config(layout="wide")
 
+#load data from github
 @st.cache_data(show_spinner=False)
 def load_data():
     url=r'https://github.com/Friendly-Aid/BigProject_1/raw/refs/heads/master/risk_app/fire_data_enriched.csv.xz'
     return pd.read_csv(url,compression='xz',parse_dates=['acq_date'], low_memory=False)
-    #path = os.path.join(os.getcwd(), "fire_data_enriched.csv.xz")
+    #path = os.path.join(os.getcwd(), "fire_data_enriched.csv")
     #df = pd.read_csv(path, parse_dates=["acq_date"], low_memory=False)
     #return df
 
@@ -19,7 +21,7 @@ month_names = [
     "July", "August", "September", "October", "November", "December"
 ]
 
-# === TOP ROW: STATE / COUNTY / PLACE ===
+# setup selection for location
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -51,7 +53,7 @@ else:
 with col3:
     selected_place = st.selectbox("Place", [""] + place_options, index=0, disabled=place_disabled)
 
-# === SECOND ROW: MONTH(S) + DAY ===
+# setup selection month(s) and day
 col4, col5 = st.columns([2, 1])
 
 with col4:
@@ -67,25 +69,29 @@ with col5:
         value=None, placeholder="e.g. 15", disabled=day_disabled
     )
 
-# === RISK MATRIX GENERATION ===
+# risk matrix function
 def get_risk_matrix(df, state, county=None, place=None, months=None, day=None):
     month_map = {name.lower(): idx+1 for idx, name in enumerate(month_names)}
 
     if months:
         months = [month_map[m.lower()] for m in months if m.lower() in month_map]
 
+    # setup data
     filtered = df[df['state_name'] == state].copy()
     filtered['year'] = filtered['acq_date'].dt.year
     filtered['month'] = filtered['acq_date'].dt.month
     filtered['day'] = filtered['acq_date'].dt.day
 
+    # remove first and last year due to uncompleted data
     filtered = filtered[
         (filtered['year'] != filtered['year'].max()) &
         (filtered['year'] != filtered['year'].min())
     ]
+
     total_years = (filtered['year'].max() - filtered['year'].min()) + 1
     total_periods = total_years
 
+    # filter if data received
     if county:
         filtered = filtered[filtered['county_name'] == county]
     if place:
@@ -108,6 +114,7 @@ def get_risk_matrix(df, state, county=None, place=None, months=None, day=None):
             subset=['year', 'fire_count_binned', 'cluster_confidence_binned']
         )
 
+    # get number of detections and divide by number of possible detections
     grouped = (
         filtered.groupby(['fire_count_binned', 'cluster_confidence_binned'])
         .size()
@@ -116,6 +123,7 @@ def get_risk_matrix(df, state, county=None, place=None, months=None, day=None):
     grouped['frequency'] = round((grouped['count'] / total_periods) * 100, 2)
     grouped.drop('count', axis=1, inplace=True)
 
+    # create matrix
     pivot = pd.pivot_table(
         grouped,
         index='cluster_confidence_binned',
@@ -124,7 +132,6 @@ def get_risk_matrix(df, state, county=None, place=None, months=None, day=None):
         aggfunc='mean'
     ).fillna(0)
 
-    # Force full grid
     all_sizes = ["Small", "Medium", "Large"]
     all_confidence = ["High", "Nominal", "Low"]
     pivot = pivot.reindex(index=all_confidence, columns=all_sizes, fill_value=0)
@@ -142,7 +149,7 @@ def get_risk_matrix(df, state, county=None, place=None, months=None, day=None):
     )
     return styled
 
-# === DISPLAY MATRIX ===
+# show matrix
 if selected_state:
     matrix = get_risk_matrix(
         data,
