@@ -148,9 +148,14 @@ def get_risk_matrix(df, state, county=None, place=None, months=None, day=None):
         ])
     )
     return styled
-
+st.write('---')
 # show matrix
 if selected_state:
+    st.header("The data source for this matrix is from nasa at [FIRMS](%s). Due to the way fires are detected they also have a confidence level." % 'https://firms.modaps.eosdis.nasa.gov')
+    st.markdown('')
+    row_tip, col_tip = st.columns(2,gap='large')
+    row_tip.subheader("The first row is the the size of the fire: Small, Medium, and Large.")
+    col_tip.subheader("The first column is the the confidence level: High, Nominal/Medium, and Low.")
     matrix = get_risk_matrix(
         data,
         selected_state,
@@ -159,5 +164,4 @@ if selected_state:
         selected_months,
         selected_day
     )
-    st.subheader("Risk Matrix")
     st.write(matrix)
